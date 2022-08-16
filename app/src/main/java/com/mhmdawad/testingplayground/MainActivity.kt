@@ -7,6 +7,7 @@ import androidx.compose.animation.animateColor
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.Button
 import androidx.compose.material.Text
@@ -23,41 +24,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-
-            // change size with animations
-            var sizeState by remember {
-                mutableStateOf(200.dp)
-            }
-            val size by animateDpAsState(
-                targetValue = sizeState,
-                tween(
-                    durationMillis = 2000,
-                    easing = LinearOutSlowInEasing
-                )
-            )
-
-            //change color with animation
-            val infiniteTransition = rememberInfiniteTransition()
-            val color by infiniteTransition.animateColor(
-                initialValue = Color.Red,
-                targetValue = Color.Blue,
-                animationSpec = infiniteRepeatable(
-                    tween(durationMillis = 2000),
-                    repeatMode = RepeatMode.Reverse
-                )
-            )
-            Box(
-                modifier = Modifier
-                    .size(size)
-                    .background(color)
-            ){
-                Button(
-                    modifier = Modifier.align(Alignment.Center),
-                    onClick = {
-                    sizeState += 50.dp
-                }) {
-                    Text("Click Me!")
-                }
+            
+            Box(modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center){
+                CircularProgressBar(percentage = .8223452525f, number = 1000)
             }
         }
     }
