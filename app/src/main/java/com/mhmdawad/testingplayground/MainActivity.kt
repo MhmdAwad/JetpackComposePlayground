@@ -25,12 +25,22 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PointMode
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.mhmdawad.testingplayground.ui.theme.JetpackComposePlaygroundTheme
+import kotlinx.coroutines.delay
 import kotlin.math.*
 
 class MainActivity : ComponentActivity() {
@@ -55,132 +65,100 @@ class MainActivity : ComponentActivity() {
                         )
                     },
                     content = {
-                        var percent by remember {
-                            mutableStateOf(0f)
-                        }
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(Color.Black)
-                                .padding(10.dp),
+                                .background(Color(0xFF101010)),
                             contentAlignment = Alignment.Center
                         ) {
-
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center,
+                            CircularTimer(
+                                activeColor = Color.Green,
+                                inactiveColor = Color.DarkGray,
+                                initialValue = 1f,
                                 modifier = Modifier
-                                    .border(1.dp, Color.Green, RoundedCornerShape(10.dp))
-                                    .padding(10.dp),
-                            ) {
-                                MusicKnob {
-                                    percent = it
-                                }
-                                Spacer(modifier = Modifier.width(10.dp))
-                                VolumeBar(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(70.dp),
-                                    barCount = 10,
-                                    activeBars = (10 * percent).roundToInt()
-                                )
-                            }
+                                    .size(200.dp),
+                                totalTime = 100L * 1000
+                            )
                         }
                     })
-            }
 
+            }
+        }
+
+    }
+}
+
+@Composable
+fun CircularTimer(
+    inactiveColor: Color,
+    activeColor: Color,
+    strokeWidth: Dp = 5.dp,
+    modifier: Modifier,
+    initialValue: Float,
+    totalTime: Long
+) {
+
+    var size by remember {
+        mutableStateOf(IntSize.Zero)
+    }
+    var value by remember {
+        mutableStateOf(initialValue)
+    }
+    var currentTime by remember {
+        mutableStateOf(totalTime)
+    }
+    var isTimerRunning by remember {
+        mutableStateOf(true)
+    }
+    LaunchedEffect(key1 = isTimerRunning, key2 = currentTime){
+        if(isTimerRunning && currentTime > 0L){
+            delay(100L)
+            currentTime -= 100L
+            value = currentTime / totalTime.toFloat()
         }
     }
-
-    @Composable
-    fun VolumeBar(
-        modifier: Modifier,
-        barCount: Int = 0,
-        activeBars: Int = 0,
+    Box(
+        modifier = modifier
+            .onSizeChanged {
+                size = it
+            },
+        contentAlignment = Alignment.Center
     ) {
-
-        BoxWithConstraints(
-            contentAlignment = Alignment.Center,
-            modifier = modifier
-        ) {
-            val barWidth = remember {
-                constraints.maxWidth / (2f * barCount)
-            }
-            Canvas(
-                modifier = modifier
-            ) {
-                for (i in 0 until barCount) {
-                    drawRoundRect(
-                        color = if (i in 0..activeBars) Color.Green else Color.DarkGray,
-                        topLeft = Offset(i * barWidth * 2f + barWidth / 2f, 0f),
-                        size = Size(barWidth, constraints.maxHeight.toFloat()),
-                        cornerRadius = CornerRadius(10f)
-                    )
-                }
-            }
-        }
+        Canvas(modifier = modifier) {
+            drawArc(
+                color = inactiveColor,
+                startAngle = -215f,
+                sweepAngle = 250f,
+                useCenter = false,
+                size = Size(size.width.toFloat(), size.height.toFloat()),
+                style = Stroke(strokeWidth.toPx(), cap = StrokeCap.Round)
+            )
+            drawArc(
+                color = activeColor,
+                startAngle = -215f,
+                sweepAngle = 250f * value,
+                useCenter = false,
+                size = Size(size.width.toFloat(), size.height.toFloat()),
+                style = Stroke(strokeWidth.toPx(), cap = StrokeCap.Round)
+            )
+            val center = Offset(size.width / 2f, size.height / 2f)
+            val beta = (250f * value + 145f) * (PI / 180f).toFloat()
+            val r = size.width / 2f
+            val a = cos(beta) * r
+            val b = sin(beta) * r
+            drawPoints(
+                listOf(Offset(center.x + a, center.y + b)),
+                pointMode = PointMode.Points,
+                color = Color.Red,
+                strokeWidth = (strokeWidth * 3f).toPx(),
+                cap = StrokeCap.Round
+            )
+       }
+        Text(text = (currentTime / 1000L).toString(), style = TextStyle(
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            fontSize = 44.sp
+        ))
     }
 
-
-    @OptIn(ExperimentalComposeUiApi::class)
-    @Composable
-    fun MusicKnob(
-        limitingAngle: Float = 25f,
-        onValueChange: (Float) -> Unit
-    ) {
-        var rotation by remember {
-            mutableStateOf(limitingAngle)
-        }
-        var touchX by remember {
-            mutableStateOf(0f)
-        }
-        var touchY by remember {
-            mutableStateOf(0f)
-        }
-        var centerX by remember {
-            mutableStateOf(0f)
-        }
-        var centerY by remember {
-            mutableStateOf(0f)
-        }
-
-        Image(
-            painter = painterResource(id = R.drawable.music_knob),
-            contentDescription = "Music Knob",
-            modifier = Modifier
-                .size(100.dp)
-                .fillMaxSize()
-                .onGloballyPositioned {
-                    val windowBounce = it.boundsInWindow()
-                    centerX = windowBounce.size.width / 2f
-                    centerY = windowBounce.size.height / 2f
-                }
-                .pointerInteropFilter { event ->
-                    touchX = event.x
-                    touchY = event.y
-                    val angle = -atan2(centerX - touchX, centerY - touchY) * (180 / PI).toFloat()
-
-                    when (event.action) {
-                        MotionEvent.ACTION_DOWN,
-                        MotionEvent.ACTION_MOVE -> {
-                            if (angle !in -limitingAngle..limitingAngle) {
-                                val fixedAngle = if (angle in -180f..-limitingAngle) {
-                                    360f + angle
-                                } else {
-                                    angle
-                                }
-                                rotation = fixedAngle
-                                val percent =
-                                    (fixedAngle - limitingAngle) / (360f - 2 * limitingAngle)
-                                onValueChange(percent)
-                                true
-                            } else false
-                        }
-                        else -> false
-                    }
-                }
-                .rotate(rotation)
-        )
-
-    }
 }
