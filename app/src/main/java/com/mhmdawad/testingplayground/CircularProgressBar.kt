@@ -1,7 +1,6 @@
 package com.mhmdawad.testingplayground
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
@@ -25,7 +24,7 @@ fun CircularProgressBar(
     radius: Dp = 50.dp,
     color: Color = Color.Blue,
     strokeWidth: Dp = 6.dp,
-    animDuration: Int = 1000,
+    animDuration: Int = 1500,
     animDelay: Int = 0
 ) {
     val curPercentage = remember {
