@@ -20,10 +20,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PointMode
 import androidx.compose.ui.graphics.StrokeCap
@@ -86,6 +88,33 @@ class MainActivity : ComponentActivity() {
         }
 
     }
+}
+
+@Composable
+internal fun CircleProgress(
+    angle: Float,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier
+            .fillMaxSize()
+            .drawBehind {
+                drawArc(
+                    color = Color.White,
+                    startAngle = 0f,
+                    sweepAngle = 360f,
+                    useCenter = false,
+                    style = Stroke(width = 30f)
+                )
+                drawArc(
+                    brush = Brush.verticalGradient(listOf(Color.Red, Color.Blue, Color.Green)),
+                    startAngle = -90f,
+                    sweepAngle = angle,
+                    useCenter = false,
+                    style = Stroke(width = 30f, cap = StrokeCap.Round)
+                )
+            }
+    )
 }
 
 @Composable
