@@ -38,6 +38,7 @@ import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
 import kotlin.math.*
 
+// THIS IS FIRST ANIMATION BRANCH NOT THE COPY.
 enum class Splash{
     FIRST, SECOND, THIRD
 }
