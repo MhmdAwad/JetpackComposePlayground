@@ -39,6 +39,7 @@ import kotlinx.coroutines.delay
 import kotlin.math.*
 
 // THIS IS FIRST ANIMATION BRANCH NOT THE COPY.
+// TRY AGAIN WITHOUT PUSH
 enum class Splash{
     FIRST, SECOND, THIRD
 }
