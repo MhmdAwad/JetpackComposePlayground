@@ -1,28 +1,20 @@
 package com.mhmdawad.testingplayground
 
 import android.os.Bundle
-import android.view.MotionEvent
+import android.window.SplashScreen
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.animateColor
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -30,9 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PointMode
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.input.pointer.pointerInteropFilter
-import androidx.compose.ui.layout.boundsInWindow
-import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -41,55 +31,84 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.mhmdawad.testingplayground.ui.theme.JetpackComposePlaygroundTheme
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
 import kotlin.math.*
 
+enum class Splash{
+    FIRST, SECOND, THIRD
+}
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-
-            JetpackComposePlaygroundTheme {
-                Scaffold(
-                    topBar = {
-                        TopAppBar(
-                            title = {
-                                Text(text = getString(R.string.app_name))
-                            },
-                            navigationIcon = {
-                                IconButton(onClick = {
-                                    onBackPressed()
-                                }) {
-                                    Icon(Icons.Filled.ArrowBack, "menu")
-                                }
-                            }
-                        )
-                    },
-                    content = {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(Color(0xFF101010)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularTimer(
-                                activeColor = Color.Green,
-                                inactiveColor = Color.DarkGray,
-                                initialValue = 1f,
-                                modifier = Modifier
-                                    .size(200.dp),
-                                totalTime = 100L * 1000
-                            )
-                        }
-                    })
-
-            }
+         Box(
+             modifier = Modifier.fillMaxSize()
+         ){
+             Navigation()
+         }
         }
 
     }
 }
 
+@Composable
+fun Navigation() {
+    val navController = rememberNavController()
+    NavHost(navController = navController, startDestination = "splash_screen"){
+        composable("splash_screen"){
+            SplashScreen(navController = navController)
+        }
+        composable("home_screen"){
+            HomeScreen(navController = navController)
+        }
+    }
+}
+
+
+@Composable
+fun HomeScreen(navController: NavController) {
+    CircleProgress(angle = 45f)
+}
+@Composable
+fun SplashScreen(navController: NavController) {
+    var flag by remember {
+        mutableStateOf(Splash.FIRST)
+    }
+    Box(modifier = Modifier.fillMaxSize()){
+        LaunchedEffect(key1 = flag){
+            delay(1000L)
+            if(flag == Splash.FIRST){
+                flag = Splash.SECOND
+            }
+            else if(flag == Splash.SECOND)
+                flag = Splash.THIRD
+            else{
+                navController.navigate("home_screen")
+            }
+        }
+        Crossfade(
+            flag,
+            animationSpec = tween(1000)
+        ) { targetState ->
+            Image(
+                painterResource(
+                    when(targetState){
+                        Splash.FIRST -> R.drawable.splash1
+                        Splash.SECOND -> R.drawable.splash2
+                        Splash.THIRD-> R.drawable.splash3
+                    }
+                ),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+    }
+}
 @Composable
 internal fun CircleProgress(
     angle: Float,
